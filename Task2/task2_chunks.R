@@ -13,12 +13,12 @@ split_with_overlap <- function(string, chunk_size, overlap) {
   if (nchar(chunks[length(chunks)]) < chunk_size) {
     chunks[length(chunks)] <- substr(string, nchar(string) - 6, nchar(string))
   }
-  for (i in seq(5, nchar(string), chunk_size)) {
-    chunks <- c(chunks, substr(string, i, i + chunk_size - 1))
-  }
-  if (nchar(chunks[length(chunks)]) < chunk_size) {
-    chunks <- chunks[-length(chunks)]
-  }
+  #for (i in seq(5, nchar(string), chunk_size)) {
+  #  chunks <- c(chunks, substr(string, i, i + chunk_size - 1))
+  #}
+  #if (nchar(chunks[length(chunks)]) < chunk_size) {
+  #  chunks <- chunks[-length(chunks)]
+  #}
   return(chunks)
 }
 
@@ -56,7 +56,7 @@ writeLines(all_chunks_unm, "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\
 
 # test files
 
-test_cert_1 <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-cert\\snd-cert.1.test", header=FALSE)
+test_cert_1 <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-cert\\snd-cert.3.test", header=FALSE)
 #test_cert_1_labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-cert\\snd-cert.3.labels", header=FALSE)
 
 all_chunks_cert_test_1 <- c()
@@ -69,9 +69,9 @@ for (i in 1:length(test_cert_1$V1)) {
   all_lengths_cert_test_1 <- c(all_lengths_cert_test_1, length(ret_chunks))
 }
 
-writeLines(all_chunks_cert_test_1, "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_1_chunks.test")
+writeLines(all_chunks_cert_test_1, "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3_chunks_nooverlap.test")
 #writeLines(as.character(all_lables_cert_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3_chunks.labels")
-writeLines(as.character(all_lengths_cert_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_1_chunks.lengths")
+writeLines(as.character(all_lengths_cert_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3_chunks_nooverlap.lengths")
 
 test_unm_1 <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-unm\\snd-unm.1.test", header=FALSE)
 #test_unm_1_labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-unm\\snd-unm.3.labels", header=FALSE)
