@@ -1,9 +1,9 @@
 library(ROCR)
 library(pROC)
 
-results <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_chunks_nooverlap.results", header=FALSE)
-lengths <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_chunks_nooverlap.lengths", header=FALSE)
-labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-cert\\snd-cert.labels", header=FALSE)
+results <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_all-3_nooverlap_unm.results", header=FALSE)
+lengths <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-unm_chunks_nooverlap.lengths", header=FALSE)
+labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-unm\\snd-unm.labels", header=FALSE)
 
 results <- results$V1
 lengths <- lengths$V1
