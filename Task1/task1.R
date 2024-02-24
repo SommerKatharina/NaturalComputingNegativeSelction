@@ -2,8 +2,8 @@ library(ROCR)
 library(pROC)
 
 #task 1
-english <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task1\\english_res_1.txt", header=FALSE)
-tagalog <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task1\\tagalog_res_9.txt", header=FALSE)
+english <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task1\\english_res_7.txt", header=FALSE)
+tagalog <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task1\\tagalog_res_7.txt", header=FALSE)
 
 english$label <- 0
 tagalog$label <- 1
@@ -17,11 +17,11 @@ values <- all_data$V1
 tpr <- c(1)
 fpr <- c(1)
 
-for (value in values) {
+for (value in unique(values)) {
   predictions <- as.numeric(values > value)
   pred <- prediction(predictions, labels)
   perf <- performance(pred, "tpr", "fpr")
-  tpr <- c(tpr, perf@y.values[[1]][length(perf@x.values[[1]]) - 1])
+  tpr <- c(tpr, perf@y.values[[1]][length(perf@y.values[[1]]) - 1])
   fpr <- c(fpr, perf@x.values[[1]][length(perf@x.values[[1]]) - 1])
 }
 
