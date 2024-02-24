@@ -1,9 +1,9 @@
 library(ROCR)
 library(pROC)
 
-results <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3-3_nooverlap.results", header=FALSE)
-lengths <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3_chunks_nooverlap.lengths", header=FALSE)
-labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-cert\\snd-cert.3.labels", header=FALSE)
+results <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_chunks_nooverlap.results", header=FALSE)
+lengths <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_chunks_nooverlap.lengths", header=FALSE)
+labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-cert\\snd-cert.labels", header=FALSE)
 
 results <- results$V1
 lengths <- lengths$V1
@@ -14,7 +14,14 @@ currentIndex <- 1
 values <- c()
 while (i <= length(lengths)) {
   sum <- sum(results[currentIndex:(currentIndex+lengths[i]-1)])
-  values <- c(values, sum/lengths[i])
+  non_zero_count <- sum(results[currentIndex:(currentIndex+lengths[i]-1)] != 0)
+  if (non_zero_count == 0) {
+    values <- c(values, 0)
+  } else {
+    values <- c(values, sum/non_zero_count)
+  }
+  #print(median(results[currentIndex:(currentIndex+lengths[i]-1)]))
+  #values <- c(values, median(results[currentIndex:(currentIndex+lengths[i]-1)]))
   currentIndex <- currentIndex + lengths[i]
   i <- i+1
 }
@@ -31,11 +38,11 @@ values <- all_data$values
 tpr <- c(1)
 fpr <- c(1)
 
-for (value in values) {
+for (value in unique(values)) {
   predictions <- as.numeric(values > value)
   pred <- prediction(predictions, labels)
   perf <- performance(pred, "tpr", "fpr")
-  tpr <- c(tpr, perf@y.values[[1]][length(perf@x.values[[1]]) - 1])
+  tpr <- c(tpr, perf@y.values[[1]][length(perf@y.values[[1]]) - 1])
   fpr <- c(fpr, perf@x.values[[1]][length(perf@x.values[[1]]) - 1])
 }
 
@@ -44,7 +51,7 @@ fpr <- c(fpr, 0)
 tpr <- rev(tpr)
 fpr <- rev(fpr)
 print(fpr)
-
+print(tpr)
 
 auc <- sum(diff(fpr) * (tpr[-1] + tpr[-length(tpr)]) / 2)
 

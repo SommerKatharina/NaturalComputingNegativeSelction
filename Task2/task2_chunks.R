@@ -73,7 +73,7 @@ writeLines(all_chunks_cert_test_1, "C:\\Users\\kathi\\Documents\\Studium\\Master
 #writeLines(as.character(all_lables_cert_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3_chunks.labels")
 writeLines(as.character(all_lengths_cert_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-cert_3_chunks_nooverlap.lengths")
 
-test_unm_1 <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-unm\\snd-unm.1.test", header=FALSE)
+test_unm_1 <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-unm\\snd-unm.3.test", header=FALSE)
 #test_unm_1_labels <- read.csv("C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\negative-selection\\negative-selection\\syscalls\\snd-unm\\snd-unm.3.labels", header=FALSE)
 
 all_chunks_unm_test_1 <- c()
@@ -86,6 +86,6 @@ for (i in 1:length(test_unm_1$V1)) {
   all_lengths_unm_test_1 <- c(all_lengths_unm_test_1, length(ret_chunks))
 }
 
-writeLines(all_chunks_unm_test_1, "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-unm_1_chunks.test")
+writeLines(all_chunks_unm_test_1, "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-unm_3_chunks_nooverlap.test")
 #writeLines(as.character(all_lables_unm_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-unm_3_chunks.labels")
-writeLines(as.character(all_lengths_unm_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-unm_1_chunks.lengths")
+writeLines(as.character(all_lengths_unm_test_1), "C:\\Users\\kathi\\Documents\\Studium\\Master\\SS24\\NaCo\\Assignment\\Assignment3\\Task2\\snd-unm_3_chunks_nooverlap.lengths")
