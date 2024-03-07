@@ -1,4 +1,7 @@
-# Natural Computing Assignment 3
+# Natural Computing
 ## Anomaly Detection using Negative Selection Algorithms
 
-This repository contains our code for Assignment 3 of Natural Computing.
+The folders Task 1 and Task 2 contains our code for Assignment 3 of Natural Computing.
+
+## Evolutionary Algorithm
+The folder Assignment 5 contains our code for Assignment 5 of Natural Computing.
