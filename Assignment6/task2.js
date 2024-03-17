@@ -84,7 +84,7 @@ class Particle {
 
     // HYPERPARAMS
     this.speed = 3; // SPEED
-    this.sep_bound = 10; // SEPARATION DISTANCE
+    this.sep_bound = 15; // SEPARATION DISTANCE
 
     // PARAMS TO SEARCH FOR OPTIMUM
     this.coh_strength = 0; // COHESION STRENGTH
@@ -92,23 +92,48 @@ class Particle {
     this.sep_strength = 0;
   }
 
-  calculateAvg(N) {
+    calculateAvg(N) {
     let avg_sin = 0,
       avg_cos = 0,
       avg_p = createVector(0, 0),
       avg_d = createVector(0, 0);
+    let length_cons_current = N.length;
+
+    if (N.includes(this) && length_cons_current == 1) {
+      let r = {
+        p: createVector(0, 0),
+        d: createVector(0, 0),
+        sin_: Math.sin(this.dir.heading()),
+        cos_: Math.cos(this.dir.heading()),
+      };
+      return r;
+    }
+
+    if (!N.includes(this)) {
+      avg_sin = Math.sin(this.dir.heading());
+      avg_cos = Math.cos(this.dir.heading());
+      length_cons_current += 1;
+    }
+
     for (let n of N) {
       if (n != this) {
         avg_p.add(n.pos);
-
         avg_d.add(n.dir);
-
-        avg_sin += Math.sin(n.dir.heading()) / (N.length - 1);
-        avg_cos += Math.cos(n.dir.heading()) / (N.length - 1);
+        // avg_sin += Math.sin(n.dir.heading());
+        // avg_cos += Math.cos(n.dir.heading());
       }
+
+      avg_sin += Math.sin(n.dir.heading());
+      avg_cos += Math.cos(n.dir.heading());
     }
-    avg_p.div(N.length - 1);
-    avg_d.div(N.length - 1);
+
+    avg_sin = avg_sin / length_cons_current;
+    avg_cos = avg_cos / length_cons_current;
+
+    if (length_cons_current > 1) {
+      avg_p.div(length_cons_current - 1);
+      avg_d.div(length_cons_current - 1);
+    }
 
     return {
       p: avg_p,
@@ -128,7 +153,10 @@ class Particle {
         }
       }
     }
-    return separate.div(N.length - 1);
+    if (N.length > 1) {
+      return separate.div(N.length - 1);
+    }
+    return separate;
   }
 
   avgAngle(avg_cos, avg_sin) {
@@ -141,27 +169,46 @@ class Particle {
   defineDir(previousDir) {
     // INDENTIFY NEIGHBOURS TO CONSIDER
     let N = Scene.neighbours(this.pos, previousDir);
+    
+    // DEFAULT DIRECTION WITHOUT ADJUSTMENTS: THE SAME DIR WITH SOME RANDOM NOISE
+    let angle = this.avgAngle(Math.cos(previousDir.heading()), Math.sin(previousDir.heading()))
+    let dir = p5.Vector.fromAngle(angle);
+    // console.log('INITIAL')
+    // console.log(dir)
+    
+    // IF NO NEIGHBOURS, CONTINUE MOVING IN 
+    if (N.includes(this) && N.length == 1) {
+      let sum_squared = sqrt(dir.magSq()); // magnitude or speed
+      dir.div(sum_squared);
+      dir.mult(this.speed);
+      return dir;
+    }
 
     // CALCULATE THE AVG POS AND ANGLE FOR NEIGHBOURS
     let avgs = this.calculateAvg(N);
-    let avg_angle = this.avgAngle(avgs.cos_, avgs.sin_);
 
-    // ANGLE AS AVG OF ALL NEIGHBOURS
-    let dir = p5.Vector.fromAngle(avg_angle); // vector given avg angle
-
-    // ADJUST BY ALIGNMENT
-    avgs.d.mult(this.align_strength); // how strong should be the moving all in the same direction
+    // ADJUST BY ALIGNMENT - consider avg direction
+    avgs.d.normalize().mult(this.align_strength); // how strong should be the moving all in the same direction
     dir.add(avgs.d); // alignment
+    
+    // console.log('AFTER ALIGN')
+    // console.log(dir)
 
     // ADJUST BY COHESION
-    let cohesion = p5.Vector.sub(avgs.p, this.pos); // direction between this and avg
+    let cohesion = p5.Vector.sub(avgs.p, this.pos).normalize(); // !!!!!!!!!!
     cohesion.mult(this.coh_strength); // how string should be the stickiness
-    dir.add(cohesion); // it has to move towards the avg of swarm
+    dir.add(cohesion);
+    
+    // console.log('COHESION')
+    // console.log(dir)
 
     // ADJUST BY SEPARATION
-    let separate = this.separateSwarms(N);
+    let separate = this.separateSwarms(N).normalize();
     separate.mult(this.sep_strength);
     dir.add(separate);
+    
+    // console.log('SEPAR')
+    // console.log(dir)
 
     // PRESERVE SPEED
     let sum_squared = sqrt(dir.magSq()); // magnitude or speed
@@ -250,8 +297,8 @@ function respawnParticles() {
 
 function initPopulation(eps_0, ABC_POPULATION, ABC_POPULATION_SIZE) {
   let k = 0;
-  let CURRENT_FITNESS = []
-  let tries = 0
+  let CURRENT_FITNESS = [];
+  let tries = 0;
   while (k < ABC_POPULATION_SIZE) {
     // draw from uniform prior [0,1]
     let C_STR = Math.random();
@@ -277,13 +324,13 @@ function initPopulation(eps_0, ABC_POPULATION, ABC_POPULATION_SIZE) {
 
     if (distance < eps_0) {
       ABC_POPULATION.push({ C_STR, A_STR, S_STR });
-      CURRENT_FITNESS.push(distance)
+      CURRENT_FITNESS.push(distance);
       k++;
     }
-    tries++
+    tries++;
   }
-  ACCEPTED_FITNESSES.push(CURRENT_FITNESS)
-  TRIES_PER_EPSILON.push(tries)
+  ACCEPTED_FITNESSES.push(CURRENT_FITNESS);
+  TRIES_PER_EPSILON.push(tries);
   return ABC_POPULATION;
 }
 
@@ -333,7 +380,7 @@ let EPS_0 = 0.8;
 function draw() {
   ABC_POPULATION = initPopulation(EPS_0, ABC_POPULATION, N_POPULATION);
   ACCEPTED_STATES.push(ABC_POPULATION);
-  let EPS = [0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+  let EPS = [0.5, 0.25, 0.15, 0.1, 0.05, 0.02, 0.01];
   let k = 0;
   let CURRENT_ACCEPTED = [];
   let CURRENT_FITNESS = [];
@@ -341,7 +388,7 @@ function draw() {
     k = 0;
     CURRENT_ACCEPTED = [];
     CURRENT_FITNESS = [];
-    tries = 0
+    tries = 0;
     while (k < N_POPULATION) {
       //console.log(i);
 
@@ -368,7 +415,14 @@ function draw() {
       A_STR = ABC_POPULATION[idx].A_STR + a_dist;
       S_STR = ABC_POPULATION[idx].S_STR + s_dist;
 
-      if (C_STR >= 0 && A_STR >= 0 && S_STR >= 0) {
+      if (
+        C_STR >= 0 &&
+        A_STR >= 0 &&
+        S_STR >= 0 &&
+        C_STR <= 1 &&
+        A_STR <= 1 &&
+        S_STR <= 1
+      ) {
         for (let p of Scene.swarm) {
           reinitParams(p, C_STR, A_STR, S_STR);
         }
@@ -398,25 +452,25 @@ function draw() {
         if (distance < e) {
           console.log("ACCEPTERD");
           CURRENT_ACCEPTED.push({ C_STR, A_STR, S_STR });
-          CURRENT_FITNESS.push(distance)
+          CURRENT_FITNESS.push(distance);
           k++;
         }
       }
-      tries++
+      tries++;
       // ACCEPTED_STATES
     }
     ACCEPTED_STATES.push(CURRENT_ACCEPTED);
-    ACCEPTED_FITNESSES.push(CURRENT_FITNESS)
-    TRIES_PER_EPSILON.push(tries)
+    ACCEPTED_FITNESSES.push(CURRENT_FITNESS);
+    TRIES_PER_EPSILON.push(tries);
     ABC_POPULATION = CURRENT_ACCEPTED;
   }
   console.log(ACCEPTED_STATES);
   console.log(ACCEPTED_FITNESSES);
-  console.log(TRIES_PER_EPSILON)
+  console.log(TRIES_PER_EPSILON);
   let writer1 = createWriter("states.json");
   let writer2 = createWriter("fitnesses.txt");
   let writer3 = createWriter("tries.txt");
-  json_string = JSON.stringify(ACCEPTED_STATES)
+  json_string = JSON.stringify(ACCEPTED_STATES);
   writer1.print(json_string);
   writer1.close();
   writer2.print(ACCEPTED_FITNESSES);

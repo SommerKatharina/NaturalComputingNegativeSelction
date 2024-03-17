@@ -16,41 +16,28 @@ function findAngle(x1, y1, x2, y2) {
 }
 
 Scene = {
-  w: 600,
-  h: 600,
-  number_boids: 200, //15!!
+  w: 300,
+  h: 300,
+  number_boids: 15, //15!!
   swarm: [],
   radius: 50,
   angle: 270,
   neighbours(x, dir) {
-    // console.log(dir)
     let r = [];
     for (let p of this.swarm) {
-      if (dist(p.pos.x, p.pos.y, x.x, x.y) <= this.radius) {
+      let d = dist(p.pos.x, p.pos.y, x.x, x.y);
+      if (d <= this.radius) {
         directionAngle = findAngle(x.x, x.y, x.x + dir.x, x.y + dir.y);
         angle = findAngle(x.x, x.y, p.pos.x, p.pos.y);
-
-        //angle_points = Math.atan2(p.pos.y - x.y, p.pos.x - x.x);
-        //angle_movement = Math.atan2(p.pos.y - p.dir.y, p.pos.x-p.dir.x)
-        //angle_movement = Math.atan2(x.y + dir.y - x.y, x.x + dir.x - x.x);
-        //const angleDiff = Math.abs(angle_points - dir);
         angleDifference = Math.abs(directionAngle - angle);
+
         if (angleDifference > 180) {
           angleDifference = 360 - angleDifference;
         }
-        if (angleDifference <= this.angle/2) {
-          //print(angle_points)
-          //print(angle_movement)
+
+        if (angleDifference <= this.angle / 2) {
           r.push(p);
-          //fill(0,186,0 )
-          //ellipse( p.pos.x, p.pos.y, 5, 5 )
-        } // else {
-        //fill(186,0,0 )
-        //ellipse( p.pos.x, p.pos.y, 5, 5 )
-        //  }
-        //} else {
-        //    fill(0,0,186 )
-        //    ellipse( p.pos.x, p.pos.y, 5, 5 )
+        }
       }
     }
     return r;
@@ -63,10 +50,10 @@ class Particle {
     this.dir = p5.Vector.random2D();
     this.isFirst = true;
     this.speed = 5; // SPEED
-    this.coh_strength = 0.02; // COHESION STRENGTH
-    this.align_strength = 0.6; // ALIGNMENT STRENGTH
-    this.sep_bound = 20; // SEPARATION DISTANCE
-    this.sep_strength = 1;
+    this.coh_strength = 0.9; // COHESION STRENGTH
+    this.align_strength = 0.9; // ALIGNMENT STRENGTH
+    this.sep_bound = 30; // SEPARATION DISTANCE
+    this.sep_strength = 0.5;
   }
 
   calculateAvg(N) {
@@ -74,18 +61,43 @@ class Particle {
       avg_cos = 0,
       avg_p = createVector(0, 0),
       avg_d = createVector(0, 0);
+    let length_cons_current = N.length;
+
+    if (N.includes(this) && length_cons_current == 1) {
+      let r = {
+        p: createVector(0, 0),
+        d: createVector(0, 0),
+        sin_: Math.sin(this.dir.heading()),
+        cos_: Math.cos(this.dir.heading()),
+      };
+      return r;
+    }
+
+    if (!N.includes(this)) {
+      avg_sin = Math.sin(this.dir.heading());
+      avg_cos = Math.cos(this.dir.heading());
+      length_cons_current += 1;
+    }
+
     for (let n of N) {
       if (n != this) {
         avg_p.add(n.pos);
-
         avg_d.add(n.dir);
-
-        avg_sin += Math.sin(n.dir.heading()) / (N.length - 1);
-        avg_cos += Math.cos(n.dir.heading()) / (N.length - 1);
+        // avg_sin += Math.sin(n.dir.heading());
+        // avg_cos += Math.cos(n.dir.heading());
       }
+
+      avg_sin += Math.sin(n.dir.heading());
+      avg_cos += Math.cos(n.dir.heading());
     }
-    avg_p.div(N.length - 1);
-    avg_d.div(N.length - 1);
+
+    avg_sin = avg_sin / length_cons_current;
+    avg_cos = avg_cos / length_cons_current;
+
+    if (length_cons_current > 1) {
+      avg_p.div(length_cons_current - 1);
+      avg_d.div(length_cons_current - 1);
+    }
 
     return {
       p: avg_p,
@@ -105,40 +117,61 @@ class Particle {
         }
       }
     }
-    return separate.div(N.length - 1);
+    if (N.length > 1) {
+      return separate.div(N.length - 1);
+    }
+    return separate;
   }
 
   avgAngle(avg_cos, avg_sin) {
     let avg_angle = Math.atan2(avg_sin, avg_cos);
     avg_angle += Math.random() * 0.5 - 0.25;
-
     return avg_angle;
   }
 
   defineDir(previousDir) {
     // INDENTIFY NEIGHBOURS TO CONSIDER
     let N = Scene.neighbours(this.pos, previousDir);
+    
+    // DEFAULT DIRECTION WITHOUT ADJUSTMENTS: THE SAME DIR WITH SOME RANDOM NOISE
+    let angle = this.avgAngle(Math.cos(previousDir.heading()), Math.sin(previousDir.heading()))
+    let dir = p5.Vector.fromAngle(angle);
+    // console.log('INITIAL')
+    // console.log(dir)
+    
+    // IF NO NEIGHBOURS, CONTINUE MOVING IN 
+    if (N.includes(this) && N.length == 1) {
+      let sum_squared = sqrt(dir.magSq()); // magnitude or speed
+      dir.div(sum_squared);
+      dir.mult(this.speed);
+      return dir;
+    }
 
     // CALCULATE THE AVG POS AND ANGLE FOR NEIGHBOURS
     let avgs = this.calculateAvg(N);
-    let avg_angle = this.avgAngle(avgs.cos_, avgs.sin_);
 
-    // ANGLE AS AVG OF ALL NEIGHBOURS
-    let dir = p5.Vector.fromAngle(avg_angle); // vector given avg angle
-
-    // ADJUST BY ALIGNMENT
-    avgs.d.mult(this.align_strength); // how strong should be the moving all in the same direction
+    // ADJUST BY ALIGNMENT - consider avg direction
+    avgs.d.normalize().mult(this.align_strength); // how strong should be the moving all in the same direction
     dir.add(avgs.d); // alignment
+    
+    // console.log('AFTER ALIGN')
+    // console.log(dir)
 
     // ADJUST BY COHESION
-    let cohesion = p5.Vector.sub(avgs.p, this.pos); // direction between this and avg
+    let cohesion = p5.Vector.sub(avgs.p, this.pos).normalize(); // !!!!!!!!!!
     cohesion.mult(this.coh_strength); // how string should be the stickiness
-    dir.add(cohesion); // it has to move towards the avg of swarm
+    dir.add(cohesion);
+    
+    // console.log('COHESION')
+    // console.log(dir)
 
     // ADJUST BY SEPARATION
-    let separate = this.separateSwarms(N);
+    let separate = this.separateSwarms(N).normalize();
     separate.mult(this.sep_strength);
     dir.add(separate);
+    
+    // console.log('SEPAR')
+    // console.log(dir)
 
     // PRESERVE SPEED
     let sum_squared = sqrt(dir.magSq()); // magnitude or speed
@@ -224,7 +257,7 @@ let mean_dist = [];
 let order_param = [];
 
 function draw() {
-  if (COUNT < 300) {
+  if (COUNT < 10000) {
     background(220);
     //p = Scene.swarm[0]
     for (let p of Scene.swarm) {
@@ -270,16 +303,18 @@ function draw() {
     //saveCanvas('scene_exp1_${count_str}.jpg')
     COUNT++;
   }
-  //if (COUNT == 300) {
-  //COUNT++;
-  //let writer1 = createWriter("neighbours3.txt");
-  //let writer2 = createWriter("means3.txt");
-  //let writer3 = createWriter("orders3.txt");
-  //writer1.print(neighbour_distances);
-  //writer1.close();
-  //writer2.print(mean_dist);
-  //writer2.close();
-  //writer3.print(order_param);
-  //writer3.close();
-  //}
+  if (COUNT == 300) {
+    //console.log(order_param)
+    COUNT++;
+    //COUNT++;
+    //let writer1 = createWriter("neighbours3.txt");
+    //let writer2 = createWriter("means3.txt");
+    //let writer3 = createWriter("orders3.txt");
+    //writer1.print(neighbour_distances);
+    //writer1.close();
+    //writer2.print(mean_dist);
+    //writer2.close();
+    //writer3.print(order_param);
+    //writer3.close();
+  }
 }
